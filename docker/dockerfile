@@ -1,0 +1,12 @@
+# docker/Dockerfile.monitoring
+FROM python:3.9-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY src/ ./src/
+COPY configs/ ./configs/
+
+CMD ["python", "-m", "src.monitoring.pipeline"]

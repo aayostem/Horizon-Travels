@@ -1,0 +1,28 @@
+# .github/workflows/drift-pipeline.yml
+name: Drift Detection Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  schedule:
+    - cron: '0 * * * *'  # Hourly
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run tests
+      run: |
+        pip install -r requirements.txt
+        pytest tests/ -v
+    
+  monitor:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run drift monitoring
+      run: |
+        pip install -r requirements.txt
+        python -m src.monitoring.pipeline

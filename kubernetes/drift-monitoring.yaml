@@ -1,0 +1,52 @@
+# kubernetes/drift-monitoring.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: drift-monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: drift-monitoring
+  template:
+    metadata:
+      labels:
+        app: drift-monitoring
+    spec:
+      containers:
+      - name: monitoring
+        image: your-registry/drift-monitoring:latest
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/configs
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+      volumes:
+      - name: config-volume
+        configMap:
+          name: drift-config
+
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: drift-monitoring-job
+spec:
+  schedule: "0 * * * *"  # Run hourly
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: monitoring
+            image: your-registry/drift-monitoring:latest
+            command: ["python", "-m", "src.monitoring.pipeline"]
+          restartPolicy: OnFailure
